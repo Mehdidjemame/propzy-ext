@@ -1,53 +1,87 @@
-/* ---------- Property Finder branch ---------- */
-if (portal.match.test("propertyfinder.ae")) {
-  // helper to keep only digits / commas / dots
-  const num = (t = "") => (t.match(/[\d,.]+/) || [""])[0];
+import type { PlasmoCSConfig } from "plasmo"
+import { PORTALS } from "./portal-selectors"
+import { supabase } from "~supabase-client"
 
-  /* 1️⃣ selector-first extraction (confirmed in DevTools) */
-  price = num(grab('[data-testid$="price"]'));
-  beds  = num(grab('[data-testid$="bedroom"]'));
-  baths = num(grab('[data-testid$="bathroom"]'));
-  size  = num(grab('[data-testid$="area"]'));
-
-  /* 2️⃣ fallback → use previous regex/line logic if any field missing */
-  const txt   = card.innerText;
-  const lines = txt.split("\n").map(l => l.trim()).filter(Boolean);
-
-  // PRICE fallback
-  if (!price) {
-    for (const p of [
-      /AED\s*([\d,]+)/i,
-      /([\d,]+)\s*AED/i,
-      /Price:?\s*AED?\s*([\d,]+)/i,
-      /([\d,]{6,})/,
-      /([1-9]\d{5,})/
-    ]) {
-      const m = txt.match(p);
-      if (m?.[1]) { price = m[1].replace(/,/g, ""); break; }
-    }
-  }
-
-  // SIZE fallback
-  if (!size) {
-    for (const s of [
-      /([\d,]+)\s*sq\.?\s*ft/i,
-      /([\d,]+)\s*sqft/i,
-      /Size:?\s*([\d,]+)/i
-    ]) {
-      const m = txt.match(s);
-      if (m?.[1]) { size = m[1].replace(/,/g, ""); break; }
-    }
-  }
-
-  // BEDS & BATHS fallback via line offsets
-  if (!beds || !baths) {
-    const sizeIdx = lines.findIndex(l => /sq\s*ft/i.test(l));
-    if (sizeIdx >= 2) {
-      beds  = beds  || lines[sizeIdx - 2];
-      baths = baths || lines[sizeIdx - 1];
-    }
-  }
-
-  console.log("PF FINAL RESULT:", { price, beds, baths, size });
+/* ---------- content-script config ---------- */
+export const config: PlasmoCSConfig = {
+  matches: [
+    "https://*.bayut.com/*for-sale/*",
+    "https://*.dubizzle.com/en/property-for-sale/*",
+    "https://*.propertyfinder.ae/en/search*"
+  ],
+  run_at: "document_idle"
 }
-/* -------------------------------------------- */
+
+/* util → keep only digits, commas, dots */
+const num = (t = "") => (t.match(/[\d,.]+/) || [""])[0]
+
+/* safe grab helper */
+const safeGrab = (card: HTMLElement, sel?: string) =>
+  sel ? (card.querySelector(sel)?.textContent || "").trim() : ""
+
+/* -------- inject / refresh buttons -------- */
+const injectButtons = () => {
+  const portal = Object.values(PORTALS).find(p => p.match.test(location.hostname))
+  if (!portal) return
+
+  if (portal.match.test("propertyfinder.ae")) {
+    const isBuy = new URLSearchParams(location.search).get("c") === "1"
+    if (!isBuy) return
+  }
+
+  document.querySelectorAll<HTMLElement>(portal.card).forEach(card => {
+    if (card.dataset.propzy) return
+    card.dataset.propzy = "1"
+
+    const btn = document.createElement("button")
+    btn.textContent = "💾 Save to Propzy"
+    btn.style.cssText =
+      "display:block;margin:6px auto 10px auto;padding:6px 10px;" +
+      "font-size:13px;background:#006aff;color:#fff;border:none;border-radius:4px;" +
+      "cursor:pointer;width:90%;max-width:180px"
+
+    btn.onclick = async () => {
+      let price = num(safeGrab(card, portal.price))
+      let beds  = num(safeGrab(card, portal.beds))
+      let baths = num(safeGrab(card, portal.baths))
+      let size  = num(safeGrab(card, portal.size))
+
+      const text = card.innerText
+      if (!price) price = (text.match(/AED\s*([\d,]+)/i) || [, ""])[1]
+      if (!beds)  beds  = (text.match(/(\d+)\s*bed/i)     || [, ""])[1]
+      if (!baths) baths = (text.match(/(\d+)\s*bath/i)    || [, ""])[1]
+      if (!size)  size  = (text.match(/([\d,]+)\s*sq/i)   || [, ""])[1]
+
+      const fallbackTitle = safeGrab(card, "h2,h3")
+      const titleSelector = portal.title ?? ""
+      const title = safeGrab(card, titleSelector) || fallbackTitle || "(no title)"
+
+      const data = {
+        price,
+        beds,
+        baths,
+        size,
+        title,
+        url: card.querySelector("a")?.href ?? location.href,
+        portal: location.hostname.split(".").at(-2) || ""
+      }
+
+      try {
+        await supabase.from("listings").upsert(data)
+        btn.textContent = "✅ Saved!"
+        btn.style.background = "#28a745"
+      } catch {
+        btn.textContent = "⚠️ Retry"
+        btn.style.background = "#e55353"
+      }
+    }
+
+    card.insertAdjacentElement("afterend", btn)
+  })
+}
+
+injectButtons()
+new MutationObserver(injectButtons).observe(document.body, {
+  childList: true,
+  subtree: true
+})

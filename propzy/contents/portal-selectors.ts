@@ -5,27 +5,23 @@ export const PORTALS = {
     price: '[aria-label="Price"], [data-testid="price"]',
     beds:  '[aria-label="Beds"]',
     baths: '[aria-label="Baths"]',
-    size:  '[aria-label="Area"], [data-testid="area"]'
+    size:  '[aria-label="Area"], [data-testid="area"]',
+    title: 'h2, h3' // ✅ Added title selector
   },
 
   dubizzle: {
-  match: /dubizzle\.com/,
-
-  // wrapper card
-  card: 'div[class^="property-lpv-card-"]',
-
-  // inner fields  (from the probe)
-  price: '[data-testid="listing-price"]',          // e.g. “3,800,000”
-  beds : '[data-testid="listing-bedrooms"]',       // label span (“beds”)
-  baths: '[data-testid="listing-bathrooms"]',      // label span (“baths”)
-  size : '[data-testid="listing-size"]',           // label span (“sqft”)
-  title: '[data-testid="subheading-text"], h2'
+    match: /dubizzle\.com/,
+    card: 'div[class^="property-lpv-card-"]',
+    price: '[data-testid="listing-price"]',
+    beds : '[data-testid="listing-bedrooms"]',
+    baths: '[data-testid="listing-bathrooms"]',
+    size : '[data-testid="listing-size"]',
+    title: '[data-testid="subheading-text"], h2'
   },
-
 
   propertyfinder: {
     match : /propertyfinder\.ae/,
-    card  : 'li[data-testid^="list-item"]',     // lower-case confirmed
+    card  : 'li[data-testid^="list-item"]',
     price : '[data-testid$="price"]',
     beds  : '[data-testid$="bedroom"]',
     baths : '[data-testid$="bathroom"]',

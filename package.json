@@ -3,6 +3,6 @@
     "@supabase/supabase-js": "^2.53.0"
   },
   "devDependencies": {
-    "plasmo": "^0.90.5"
+    "plasmo": "^0.77.1"
   }
 }
