@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0"
+  },
+  "devDependencies": {
+    "plasmo": "^0.90.5"
+  }
+}
