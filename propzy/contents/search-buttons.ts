@@ -21,11 +21,11 @@ const safeGrab = (card: HTMLElement, sel?: string) =>
 
 /* -------- inject / refresh buttons -------- */
 const injectButtons = () => {
-  const portal = Object.values(PORTALS).find(p => p.match.test(location.hostname))
+  const portal = Object.values(PORTALS).find(p => p.match.test(window.location.hostname))
   if (!portal) return
 
   if (portal.match.test("propertyfinder.ae")) {
-    const isBuy = new URLSearchParams(location.search).get("c") === "1"
+    const isBuy = new URLSearchParams(window.location.search).get("c") === "1"
     if (!isBuy) return
   }
 
@@ -45,6 +45,7 @@ const injectButtons = () => {
       let beds  = num(safeGrab(card, portal.beds))
       let baths = num(safeGrab(card, portal.baths))
       let size  = num(safeGrab(card, portal.size))
+      let locText = safeGrab(card, portal.location) || "(no location)" // renamed
 
       const text = card.innerText
       if (!price) price = (text.match(/AED\s*([\d,]+)/i) || [, ""])[1]
@@ -61,9 +62,10 @@ const injectButtons = () => {
         beds,
         baths,
         size,
+        location: locText, // now safe
         title,
-        url: card.querySelector("a")?.href ?? location.href,
-        portal: location.hostname.split(".").at(-2) || ""
+        url: card.querySelector("a")?.href ?? window.location.href,
+        portal: window.location.hostname.split(".").at(-2) || ""
       }
 
       try {
