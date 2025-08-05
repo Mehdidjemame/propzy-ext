@@ -1,8 +1,23 @@
 {
-  "dependencies": {
-    "@supabase/supabase-js": "^2.53.0"
+  "name": "propzy",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "devDependencies": {
-    "plasmo": "^0.77.1"
+    "@types/chrome": "^0.0.237",
+    "@types/node": "^20.2.4",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "plasmo": "^0.90.5",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0"
   }
 }

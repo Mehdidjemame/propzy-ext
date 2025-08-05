@@ -6,6 +6,7 @@ export const PORTALS = {
     beds:  '[aria-label="Beds"]',
     baths: '[aria-label="Baths"]',
     size:  '[aria-label="Area"], [data-testid="area"]',
+    location: '[aria-label="Location"], [data-testid="location"]',
     title: 'h2, h3' // ✅ Added title selector
   },
 
@@ -16,6 +17,7 @@ export const PORTALS = {
     beds : '[data-testid="listing-bedrooms"]',
     baths: '[data-testid="listing-bathrooms"]',
     size : '[data-testid="listing-size"]',
+    location: '[data-testid="listing-location"]',
     title: '[data-testid="subheading-text"], h2'
   },
 
@@ -26,6 +28,7 @@ export const PORTALS = {
     beds  : '[data-testid$="bedroom"]',
     baths : '[data-testid$="bathroom"]',
     size  : '[data-testid$="area"]',
+    location: '[data-testid="property-card-location"]',
     title : 'h2, h3'
   }
 } as const
